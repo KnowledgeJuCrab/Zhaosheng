@@ -37,7 +37,9 @@
 
 ## 部署与数据迁移
 
-此仓库包含前台、后台界面和 Sites Worker 服务端源码。当前后台依赖 Sites 登录身份、D1 数据库和 R2 图片存储。直接把 public 目录放到 Netlify 或普通服务器不会自动迁移后台；需要适配目标平台的登录、内容接口和图片存储。
+此仓库包含前台、后台界面、Sites Worker 服务端源码及 Cloudflare Pages 适配。Cloudflare Pages 使用 `npm run build` 和输出目录 `dist`，具体配置见 [Cloudflare 部署说明](DEPLOY-CLOUDFLARE.md)。原平台使用 `npm run build:sites`。直接发布仓库根目录不会生成可访问的首页。
+
+Pages 版本使用 Cloudflare Access 验证管理员身份，存储仍为 D1 / R2。未配置存储时显示默认图文，未配置管理员认证时关闭后台写入。Netlify 或普通服务器仍需要适配其登录、内容接口和图片存储。
 
 `server.mjs` 是仅供本机使用的开发预览，它提供虚构测试身份，不能作为公开服务器运行。管理员邮箱、生成的部署包和本地数据均不提交到 GitHub。
 
