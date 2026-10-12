@@ -15,7 +15,7 @@ Git 项目：KnowledgeJuCrab/Zhaosheng，生产分支 main。
 
 ## 后台与内容
 
-没有绑定数据库时，前台展示 `src/default-content.json` 的默认图文。原站后台已保存的内容和上传图片不在 Git 中，需要另外导出迁移。新平台的存储配置完成前，后台显示配置提示并拒绝写入。
+当前已迁移原站第 9 版的九个自定义篇章及九张上传图片。没有绑定数据库时，前台展示 `src/published-content.json` 的完整快照，字号、图片取景和文字位置均保留；迁移图片位于 `public/media/`，校验值见 `src/published-media.json`。没有内容快照时才使用 `src/default-content.json` 的示例内容。原后台的后续修改需要重新导出同步；新平台的存储和登录配置完成前，后台显示配置提示并拒绝写入。
 
 启用 Cloudflare 后台需要：
 

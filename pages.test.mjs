@@ -12,6 +12,13 @@ await test('Pages homepage and scripts are served through the static assets bind
 await test('Pages serves nine default chapters before storage is bound',async()=>{const response=await handler.fetch(req('/api/content'),{});assert.equal(response.status,200);assert.deepEqual((await response.json()).content,defaults);});
 await test('Pages denies admin and writes when authentication is not configured',async()=>{assert.equal((await handler.fetch(req('/admin'),{})).status,503);assert.equal((await handler.fetch(req('/api/content',{method:'PUT'}),{})).status,503);});
 await test('Pages strips spoofed former-platform identity headers',async()=>{const response=await handler.fetch(req('/api/content',{headers:{'oai-authenticated-user-id':'attacker','oai-authenticated-user-email':principal}}),{DB:{}});assert.deepEqual(await response.json(),{id:null,email:null});});
+await test('Pages serves migrated image files without an R2 binding and rejects an HTML fallback',async()=>{
+  const path='/media/00000000-0000-0000-0000-000000000001.png';
+  const response=await handler.fetch(req(path),{ASSETS:{fetch:async()=>new Response(new Uint8Array([137,80,78,71]),{headers:{'Content-Type':'image/png'}})}});
+  assert.equal(response.status,200);assert.equal(response.headers.get('Content-Type'),'image/png');
+  assert.equal((await handler.fetch(req(path),{ASSETS:assets})).status,404);
+  assert.equal((await handler.fetch(req('/media/not-an-image'),{ASSETS:assets})).status,404);
+});
 
 const pair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
 const publicKey=await crypto.subtle.exportKey('jwk',pair.publicKey);publicKey.kid='test-key';
