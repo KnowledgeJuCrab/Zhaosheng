@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151615">
+  <meta name="description" content="从校园到未来，探索属于你的大学生活。">
+  <title>启程 · 探索你的大学生活</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23151615'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23d8ef79' stroke-width='2'/%3E%3Ccircle cx='24' cy='10' r='4' fill='%23d8ef79'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" type="module"></script>
+</head>
+<body>
+  <a class="skip-link" href="#journey">跳到校园探索</a>
+  <header class="header">
+    <a class="brand" href="#campus" aria-label="精神卫生学院应用心理招生，返回校园篇章"><svg aria-hidden="true" viewBox="0 0 38 38"><circle cx="19" cy="19" r="14"/><path d="M6 30 31 7"/><circle class="brand-dot" cx="30" cy="8" r="4"/></svg><span><span class="brand-name">精神卫生学院应用心理招生</span><span class="brand-en"></span></span></a>
+    <div class="edition"><span class="edition-line"></span>大学生活，从这里开始</div>
+    <span class="header-label">ADMISSIONS / 2026</span>
+  </header>
+
+  <aside class="navigation" aria-label="探索篇章">
+    <div class="orbit" id="orbit">
+      <div class="orbit-outline" aria-hidden="true"></div>
+      <div class="orbit-hub" aria-hidden="true">
+        <svg class="orbit-instrument" viewBox="0 0 200 200" fill="none">
+          <defs><radialGradient id="orbit-glow"><stop stop-color="#d9ef83" stop-opacity=".09"/><stop offset="1" stop-color="#d9ef83" stop-opacity="0"/></radialGradient></defs>
+          <circle cx="100" cy="100" r="98" fill="url(#orbit-glow)"/>
+          <circle class="instrument-outline" cx="100" cy="100" r="89"/>
+          <g id="orbit-rotor"><g id="orbit-ticks"></g><circle class="instrument-node" cx="100" cy="11" r="2.5"/><circle class="instrument-halo" cx="100" cy="11" r="6"/></g>
+          <circle class="instrument-track" cx="100" cy="100" r="69"/>
+          <circle id="orbit-trace" cx="100" cy="100" r="69" pathLength="1" transform="rotate(-90 100 100)"/>
+          <g id="orbit-inner"><circle class="instrument-segments" cx="100" cy="100" r="51" pathLength="100"/><circle class="instrument-node secondary-node" cx="100" cy="49" r="1.7"/></g>
+          <circle class="instrument-core" cx="100" cy="100" r="29"/>
+          <path class="instrument-cross" d="M100 61v6M100 133v6M61 100h6M133 100h6"/>
+        </svg>
+        <div class="orbit-readout"><span id="orbit-number">01</span><span class="orbit-readout-total">/ <span id="orbit-total">09</span></span></div>
+      </div>
+      <span class="orbit-pointer" aria-hidden="true"></span>
+      <nav class="orbit-items" aria-label="环形目录">
+        <a class="orbit-item is-active" href="#campus" data-index="0" aria-current="location"><span class="nav-num">01</span><span>认识校园</span></a>
+        <a class="orbit-item" href="#programs" data-index="1"><span class="nav-num">02</span><span>专业探索</span></a>
+        <a class="orbit-item" href="#learning" data-index="2"><span class="nav-num">03</span><span>学习日常</span></a>
+        <a class="orbit-item" href="#life" data-index="3"><span class="nav-num">04</span><span>多彩生活</span></a>
+        <a class="orbit-item" href="#future" data-index="4"><span class="nav-num">05</span><span>未来方向</span></a>
+        <a class="orbit-item" href="#admissions" data-index="5"><span class="nav-num">06</span><span>招生信息</span></a>
+        <a class="orbit-item" href="#application" data-index="6"><span class="nav-num">07</span><span>报考指南</span></a>
+        <a class="orbit-item" href="#faculty" data-index="7"><span class="nav-num">08</span><span>师资团队</span></a>
+        <a class="orbit-item" href="#practice" data-index="8"><span class="nav-num">09</span><span>实践成长</span></a>
+      </nav>
+    </div>
+    <div class="chapter-note"><span class="eyebrow">YOUR NEXT CHAPTER</span><p>每一种可能，<br>都值得在这里生长。</p><span class="note-small">探索属于你的大学生活</span></div>
+  </aside>
+
+  <main id="journey" class="journey" tabindex="-1">
+    <div class="stage">
+      <div class="scene-heading"><span>探索启程</span><span id="chapter-category">01 — THE CAMPUS</span></div>
+      <div class="scenes" aria-label="校园故事">
+        <article class="scene is-current" data-scene="0" aria-labelledby="campus-title">
+          <img src="assets/campus.jpg" alt="大学校园建筑" width="1600" height="1200" fetchpriority="high">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">01 / 认识校园</span><h1 id="campus-title">世界很大，<br>从这里出发。</h1><p>走进开放的校园，让好奇心有处安放，<br class="desktop-break">让每一个新的想法，都有发生的空间。</p></div>
+          <span class="image-index" aria-hidden="true">01</span>
+        </article>
+        <article class="scene" data-scene="1" aria-labelledby="programs-title" aria-hidden="true" inert>
+          <img src="assets/students.jpg" alt="学生围坐在桌边交流想法" width="1600" height="1200">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">02 / 专业探索</span><h2 id="programs-title">把好奇，<br>变成你的专业。</h2><p>在科学、人文与创意之间探索，<br class="desktop-break">找到让你愿意不断深入的那个问题。</p></div><span class="image-index" aria-hidden="true">02</span>
+        </article>
+        <article class="scene" data-scene="2" aria-labelledby="learning-title" aria-hidden="true" inert>
+          <img src="assets/library.jpg" alt="大学图书馆的书架与学习空间" width="1600" height="1200">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">03 / 学习日常</span><h2 id="learning-title">答案之外，<br>还有更多问题。</h2><p>从一本书、一场讨论到一次实践，<br class="desktop-break">在思考与尝试中，慢慢建立自己的视角。</p></div><span class="image-index" aria-hidden="true">03</span>
+        </article>
+        <article class="scene" data-scene="3" aria-labelledby="life-title" aria-hidden="true" inert>
+          <img src="assets/students.jpg" alt="校园伙伴一起交流与合作" width="1600" height="1200" class="life-image">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">04 / 多彩生活</span><h2 id="life-title">青春的样子，<br>由你来定义。</h2><p>找到你的伙伴，也发现不一样的自己。<br class="desktop-break">让共同的热爱，成为大学生活的日常。</p></div><span class="image-index" aria-hidden="true">04</span>
+        </article>
+        <article class="scene" data-scene="4" aria-labelledby="future-title" aria-hidden="true" inert>
+          <img src="assets/campus.jpg" alt="面向天空的校园建筑" width="1600" height="1200" class="future-image">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">05 / 未来方向</span><h2 id="future-title">未来没有标准，<br>你就是起点。</h2><p>带着在这里积累的知识与勇气，<br class="desktop-break">走向更广阔的世界，写下自己的下一章。</p></div><span class="image-index" aria-hidden="true">05</span>
+        </article>
+        <article class="scene" data-scene="5" aria-labelledby="admissions-title" aria-hidden="true" inert>
+          <img src="assets/campus.jpg" alt="大学校园建筑与开放空间" width="1600" height="1200">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">06 / 招生信息</span><h2 id="admissions-title">让每个选择，<br>都有充分了解。</h2><p>了解专业方向，梳理招生信息，<br class="desktop-break">让每一步选择，都更加清晰。</p></div><span class="image-index" aria-hidden="true">06</span>
+        </article>
+        <article class="scene" data-scene="6" aria-labelledby="application-title" aria-hidden="true" inert>
+          <img src="assets/students.jpg" alt="学生共同交流和准备资料" width="1600" height="1200">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">07 / 报考指南</span><h2 id="application-title">做好准备，<br>走向你的下一站。</h2><p>梳理报考方向，认真准备资料，<br class="desktop-break">带着你的目标，开启新的旅程。</p></div><span class="image-index" aria-hidden="true">07</span>
+        </article>
+        <article class="scene" data-scene="7" aria-labelledby="faculty-title" aria-hidden="true" inert>
+          <img src="assets/students.jpg" alt="学习者围坐交流与讨论" width="1600" height="1200">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">08 / 师资团队</span><h2 id="faculty-title">在交流中启发，<br>在探索中成长。</h2><p>认识老师的研究与教学方向，<br class="desktop-break">寻找与你的兴趣相连的问题。</p></div><span class="image-index" aria-hidden="true">08</span>
+        </article>
+        <article class="scene" data-scene="8" aria-labelledby="practice-title" aria-hidden="true" inert>
+          <img src="assets/library.jpg" alt="用于学习与思考的图书馆空间" width="1600" height="1200">
+          <div class="image-shade"></div>
+          <div class="scene-copy"><span class="scene-kicker">09 / 实践成长</span><h2 id="practice-title">在真实体验中，<br>发现新的理解。</h2><p>带着问题观察与思考，<br class="desktop-break">让每一次实践，成为成长的积累。</p></div><span class="image-index" aria-hidden="true">09</span>
+        </article>
+      </div>
+      <div class="scene-footer"><span id="chapter-caption">一座校园，无数种可能。</span><div class="chapter-controls"><button id="previous" aria-label="上一个篇章" disabled>〈</button><span><span id="current-number">01</span><span class="total"> / 09</span></span><button id="next" aria-label="下一个篇章">〉</button></div></div>
+    </div>
+    <div class="scroll-landmarks" aria-hidden="true"><span id="campus"></span><span id="programs"></span><span id="learning"></span><span id="life"></span><span id="future"></span><span id="admissions"></span><span id="application"></span><span id="faculty"></span><span id="practice"></span></div>
+  </main>
+
+  <footer class="footer"><span class="footer-left">探索你的可能性<span class="footer-separator">/</span><span class="footer-en">FIND YOUR POSSIBILITY</span></span><div class="scroll-hint"><span class="mouse" aria-hidden="true"><i></i></span><span id="scroll-label">向下滚动，继续探索</span></div><span class="footer-right">启程 · 校园探索</span></footer>
+  <div class="page-progress" aria-hidden="true"><i id="page-progress"></i></div>
+  <span class="sr-only" id="announcement" role="status" aria-live="polite"></span>
+</body>
+</html>

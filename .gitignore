@@ -1,0 +1,12 @@
+node_modules/
+.local-data/
+.sites-runtime/
+*.tar.gz
+
+# Private configuration and generated deployments
+dist/
+src/admin-allowlist.json
+.env
+.env.*
+!.env.example
+.netlify/
