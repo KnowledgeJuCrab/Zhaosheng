@@ -39,12 +39,13 @@ function setupResponse(adminPath,configured) {
     ?new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>内容管理</title><body style="background:#151615;color:#eff0e7;font-family:sans-serif;padding:10vw"><h1>内容管理</h1><p>${message}</p><a style="color:#d9ef83" href="/">返回网站</a></body></html>`,{status:configured?403:503,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}})
     :new Response(JSON.stringify({error:message}),{status:configured?403:503,headers:{...headers,'Content-Type':'application/json; charset=utf-8'}});
 }
-export function createPagesHandler(cms,defaults,principal,publishedSnapshot=null) {
+export function createPagesHandler(cms,defaults,principal,publishedSnapshot=null,defaultMusic={enabled:false,title:'背景音乐',src:''}) {
   return {
     async fetch(request,env) {
       const path=new URL(request.url).pathname;
       const adminPath=path==='/admin'||path.startsWith('/admin/');
       const apiPath=path.startsWith('/api/'),mediaPath=path.startsWith('/media/');
+      const audioPath=path.startsWith('/audio/');
       const write=apiPath&&!['GET','HEAD'].includes(request.method);
       // Public visitors must never be able to forge the former platform's identity headers.
       const headers=new Headers(request.headers);
@@ -59,6 +60,15 @@ export function createPagesHandler(cms,defaults,principal,publishedSnapshot=null
       }
       const clean=new Request(request,{headers});
       if(path==='/api/content'&&request.method==='GET'&&!env.DB)return new Response(JSON.stringify(publishedSnapshot||{content:defaults,revision:0,updatedAt:null}),{headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+      if(path==='/api/music'&&request.method==='GET'&&!env.DB)return Response.json({music:defaultMusic,revision:0,updatedAt:null},{headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+      if(audioPath){
+        if(!/^\/audio\/[a-z0-9][a-z0-9-]{0,80}\.mp3$/.test(path)||!['GET','HEAD'].includes(request.method))return new Response('Not found',{status:404});
+        if(env.BUCKET){const stored=await cms.fetch(clean,env);if(stored.status!==404)return stored;}
+        const audio=await env.ASSETS.fetch(clean);
+        if(audio.status===304)return audio;
+        if(!audio.ok||!/^audio\/(mpeg|mp3)(;|$)/.test(audio.headers.get('Content-Type')||''))return new Response('Not found',{status:404});
+        return audio;
+      }
       if(mediaPath) {
         if(!/^\/media\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(path)||!['GET','HEAD'].includes(request.method))return new Response('Not found',{status:404});
         if(env.BUCKET){const stored=await cms.fetch(clean,env);if(stored.status!==404)return stored;}

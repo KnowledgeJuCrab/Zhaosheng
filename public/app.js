@@ -1,5 +1,7 @@
-import {wrap,shortestDelta,scenePair} from './journey-math.js';
+import {wrap,shortestDelta,scenePair,nearestChapter,picturePosition} from './journey-math.js';
 import {prepareText,positionText} from './text-layout.js';
+import {initMusicPlayer} from './music-player.js';
+initMusicPlayer();
 const chapters = [
   { id: 'campus', name: '认识校园', category: 'THE CAMPUS', caption: '一座校园，无数种可能。' },
   { id: 'programs', name: '专业探索', category: 'YOUR PASSION', caption: '找到热爱，探索更深的世界。' },
@@ -25,6 +27,8 @@ const progressBar = document.querySelector('#page-progress');
 const scrollLabel = document.querySelector('#scroll-label');
 const announcement = document.querySelector('#announcement');
 const journey = document.querySelector('#journey');
+const pictureFrame = document.querySelector('.scenes');
+const alignPicture = document.querySelector('#align-picture');
 const orbitRotor=document.querySelector('#orbit-rotor');
 const orbitInner=document.querySelector('#orbit-inner');
 const orbitTrace=document.querySelector('#orbit-trace');
@@ -62,10 +66,13 @@ function measure() {
 }
 function render() {
   frame = 0;
-  const position = window.scrollY/Math.max(pageStep,1)+loopOffset;
+  const position = picturePosition(window.scrollY/Math.max(pageStep,1)+loopOffset,Math.max(pageStep,1));
   lastPosition=position;
-  const selected = wrap(Math.round(position),chapters.length);
+  const selected = nearestChapter(position,chapters.length);
   const pair=scenePair(position,chapters.length);
+  const between = position !== Math.round(position);
+  pictureFrame.classList.toggle('is-between',between);
+  alignPicture.hidden=!between;
   const progress=Math.min(1,wrap(position,chapters.length)/(chapters.length-1));
   const orbitPhase=reducedMotion.matches?0:position;
   orbitRotor.setAttribute('transform',`rotate(${-orbitPhase*40} 100 100)`);
@@ -112,7 +119,7 @@ function render() {
     number.textContent = displayNumber;
     orbitNumber.textContent=displayNumber;
     previous.disabled=false;next.disabled=false;
-    scrollLabel.textContent='向下滚动，继续探索';
+    scrollLabel.textContent='转动转盘或点击箭头，以继续探索';
     announcement.textContent = `第 ${current + 1} 篇，共 ${chapters.length} 篇：${chapter.name}`;
   }
 }
@@ -125,6 +132,8 @@ function rebase(force=false){
 }
 function schedule() { if (!frame) frame = requestAnimationFrame(render);clearTimeout(rebaseTimer);rebaseTimer=setTimeout(()=>rebase(),150); }
 function goTo(index, updateHash = true) {
+  // Read the current scroll position before rebasing, even if the next paint is pending.
+  lastPosition=picturePosition(window.scrollY/Math.max(pageStep,1)+loopOffset,Math.max(pageStep,1));
   const bounded = wrap(index,chapters.length);
   rebase(true);
   const target=lastPosition+shortestDelta(lastPosition,bounded,chapters.length);
@@ -135,6 +144,27 @@ links.forEach((link, i) => link.addEventListener('click', event => { event.preve
 document.querySelector('.brand').addEventListener('click', event => { event.preventDefault(); goTo(0); });
 previous.addEventListener('click', () => goTo(current - 1));
 next.addEventListener('click', () => goTo(current + 1));
+
+function showFullPicture() {
+  const position=window.scrollY/Math.max(pageStep,1)+loopOffset;
+  goTo(nearestChapter(position,chapters.length));
+}
+alignPicture.addEventListener('click',event=>{event.stopPropagation();showFullPicture();});
+// Listen on the stable frame: a partly revealed scene may currently be inert.
+let pictureGesture=null;
+pictureFrame.addEventListener('pointerdown',event=>{
+  pictureGesture={id:event.pointerId,x:event.clientX,y:event.clientY,scrollY:window.scrollY,moved:false};
+},{passive:true});
+pictureFrame.addEventListener('pointermove',event=>{
+  if(pictureGesture?.id===event.pointerId&&Math.hypot(event.clientX-pictureGesture.x,event.clientY-pictureGesture.y)>10)pictureGesture.moved=true;
+},{passive:true});
+pictureFrame.addEventListener('pointercancel',()=>{if(pictureGesture)pictureGesture.moved=true;},{passive:true});
+pictureFrame.addEventListener('click',event=>{
+  const gesture=pictureGesture;pictureGesture=null;
+  if(event.defaultPrevented||event.button!==0||gesture?.moved||(gesture&&Math.abs(window.scrollY-gesture.scrollY)>10))return;
+  if(event.target.closest('button,a,input,audio,.scene-title-block,.scene-body')||window.getSelection()?.toString())return;
+  if(pictureFrame.classList.contains('is-between'))showFullPicture();
+});
 document.querySelector('.orbit-items').addEventListener('keydown', event => {
   const activeIndex = links.indexOf(document.activeElement);
   if (activeIndex === -1) return;
@@ -201,5 +231,10 @@ async function refreshContent() {
   }finally{loadingContent=false;}
 }
 refreshContent();
+
+if(typeof BroadcastChannel==='function'){
+  const contentUpdates=new BroadcastChannel('admissions-content');
+  contentUpdates.addEventListener('message',event=>{if(event.data==='saved')refreshContent();});
+}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshContent();});
 window.addEventListener('focus',refreshContent);

@@ -1,5 +1,6 @@
 const IDS = DEFAULT_CONTENT.chapters.map(chapter=>chapter.id);
 const MAX_IMAGE = 8 * 1024 * 1024;
+const MAX_AUDIO = 20 * 1024 * 1024;
 const MAX_CONTENT = 32 * 1024;
 const CACHE_HEADERS = {'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 class HttpError extends Error { constructor(status, message) { super(message); this.status=status; } }
@@ -107,7 +108,80 @@ async function uploadImage(request,env) {
 function staticResponse(path) {
   const asset=STATIC_ASSETS[path];if(!asset)return new Response('Not found',{status:404});
   const body=asset.binary?Uint8Array.from(atob(asset.body),c=>c.charCodeAt(0)):asset.body;
-  return new Response(body,{headers:{'Content-Type':asset.type,'X-Content-Type-Options':'nosniff','Cache-Control':asset.type.startsWith('image/')?'public, max-age=86400':'no-cache','Content-Security-Policy':"default-src 'self'; img-src 'self' blob: data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"}});
+  return new Response(body,{headers:{'Content-Type':asset.type,'X-Content-Type-Options':'nosniff','Cache-Control':asset.type.startsWith('image/')?'public, max-age=86400':'no-cache','Content-Security-Policy':"default-src 'self'; img-src 'self' blob: data:; media-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"}});
+}
+function defaultMusic(){return typeof DEFAULT_MUSIC==='undefined'?{enabled:false,title:'背景音乐',src:''}:DEFAULT_MUSIC;}
+function audioPath(path){return /^\/audio\/[a-z0-9][a-z0-9-]{0,80}\.mp3$/.test(path);}
+async function getMusic(env){
+  const row=await database(env).prepare('SELECT payload, revision, updated_at FROM site_content WHERE id = ?').bind('music').first();
+  return row?{music:JSON.parse(row.payload),revision:row.revision,updatedAt:row.updated_at}:{music:defaultMusic(),revision:0,updatedAt:null};
+}
+async function saveMusic(request,env){
+  protect(request);sameOrigin(request);
+  let data;try{data=JSON.parse(new TextDecoder().decode(await readLimited(request,MAX_CONTENT)));}catch(error){if(error instanceof HttpError)throw error;throw new HttpError(400,'音乐设置格式无效。');}
+  if(!data||typeof data!=='object'||!Number.isSafeInteger(data.revision)||data.revision<0||typeof data.music?.enabled!=='boolean')throw new HttpError(400,'音乐设置或版本无效。');
+  const music={enabled:data.music.enabled,title:string(data.music.title,'音乐名称',100),src:string(data.music.src,'音乐文件',160)};
+  if((music.src&&!audioPath(music.src))||(music.enabled&&!music.src))throw new HttpError(400,'请通过后台上传 MP3 音乐。');
+  if(music.src&&music.src!==defaultMusic().src&&!await bucket(env).head(music.src.slice(7)))throw new HttpError(400,'音乐文件不存在，请重新上传。');
+  const updatedAt=new Date().toISOString(),revision=data.revision+1;
+  const result=data.revision===0
+    ?await database(env).prepare('INSERT OR IGNORE INTO site_content (id, payload, revision, updated_at) VALUES (?, ?, ?, ?)').bind('music',JSON.stringify(music),revision,updatedAt).run()
+    :await database(env).prepare('UPDATE site_content SET payload = ?, revision = ?, updated_at = ? WHERE id = ? AND revision = ?').bind(JSON.stringify(music),revision,updatedAt,'music',data.revision).run();
+  if(result.meta.changes!==1)throw new HttpError(409,'音乐已在其他窗口更新，请重新加载。');
+  return json({music,revision,updatedAt});
+}
+function isMp3(bytes){
+  let start=0;
+  if(bytes[0]===73&&bytes[1]===68&&bytes[2]===51){
+    if(bytes.length<10||![2,3,4].includes(bytes[3])||[...bytes.slice(6,10)].some(value=>value&128))return false;
+    start=10+(bytes[6]<<21)+(bytes[7]<<14)+(bytes[8]<<7)+bytes[9]+(bytes[3]===4&&(bytes[5]&16)?10:0);
+  }
+  function frameLength(offset){
+    if(offset+4>bytes.length||bytes[offset]!==255||(bytes[offset+1]&224)!==224)return 0;
+    const version=(bytes[offset+1]>>3)&3,layer=(bytes[offset+1]>>1)&3,bitrate=bytes[offset+2]>>4,rate=(bytes[offset+2]>>2)&3;
+    if(version===1||layer!==1||!bitrate||bitrate===15||rate===3)return 0;
+    const rates=[44100,48000,32000],bitrates=version===3?[0,32,40,48,56,64,80,96,112,128,160,192,224,256,320]:[0,8,16,24,32,40,48,56,64,80,96,112,128,144,160];
+    return Math.floor((version===3?144000:72000)*bitrates[bitrate]/(rates[rate]/(version===3?1:version===2?2:4)))+((bytes[offset+2]>>1)&1);
+  }
+  for(let offset=start;offset<Math.min(start+4096,bytes.length-4);offset++){
+    const length=frameLength(offset);if(length&&offset+length<=bytes.length&&frameLength(offset+length))return true;
+  }
+  return false;
+}
+async function uploadAudio(request,env){
+  protect(request);sameOrigin(request);
+  if(!['audio/mpeg','audio/mp3'].includes(request.headers.get('Content-Type')?.split(';')[0]))throw new HttpError(415,'请上传 MP3 音乐。');
+  const bytes=await readLimited(request,MAX_AUDIO);
+  if(!isMp3(bytes))throw new HttpError(400,'文件不是有效的 MP3，请重新选择。');
+  const key=crypto.randomUUID()+'.mp3';
+  await bucket(env).put(key,bytes,{httpMetadata:{contentType:'audio/mpeg',cacheControl:'public, max-age=31536000, immutable'}});
+  return json({url:'/audio/'+key,size:bytes.length},201);
+}
+async function serveAudio(request,env,path){
+  if(!audioPath(path))return new Response('Not found',{status:404});
+  if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
+  const key=path.slice(7);let metadata=env.BUCKET?await env.BUCKET.head(key):null,embedded=null;
+  if(!metadata){
+    const asset=STATIC_ASSETS[path];if(!asset||asset.type!=='audio/mpeg'||!asset.binary)return new Response('Not found',{status:404});
+    embedded=Uint8Array.from(atob(asset.body),c=>c.charCodeAt(0));metadata={size:embedded.length};
+  }
+  const headers=new Headers({'Content-Type':'audio/mpeg','X-Content-Type-Options':'nosniff','Accept-Ranges':'bytes','Cache-Control':embedded?'no-cache':'public, max-age=31536000, immutable'});
+  let start=0,end=metadata.size-1,partial=false;
+  const range=request.headers.get('Range');
+  if(range){
+    const match=range.match(/^bytes=(\d*)-(\d*)$/);
+    if(!match||(!match[1]&&!match[2]))return new Response(null,{status:416,headers:{'Content-Range':`bytes */${metadata.size}`}});
+    start=match[1]?Number(match[1]):Math.max(0,metadata.size-Number(match[2]));
+    end=match[1]&&match[2]?Math.min(Number(match[2]),metadata.size-1):metadata.size-1;
+    if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start>end||start>=metadata.size)return new Response(null,{status:416,headers:{'Content-Range':`bytes */${metadata.size}`}});
+    partial=true;
+  }
+  const object=embedded?{body:embedded.subarray(start,end+1)}:await env.BUCKET.get(key,partial?{range:{offset:start,length:end-start+1}}:{});
+  if(!object)return new Response('Not found',{status:404});
+  if(object.httpEtag)headers.set('ETag',object.httpEtag);headers.set('Content-Length',String(end-start+1));
+  if(object.httpEtag&&request.headers.get('If-None-Match')===object.httpEtag)return new Response(null,{status:304,headers});
+  if(partial)headers.set('Content-Range',`bytes ${start}-${end}/${metadata.size}`);
+  return new Response(request.method==='HEAD'?null:object.body,{status:partial?206:200,headers});
 }
 export default {
   async fetch(request,env) {
@@ -119,6 +193,9 @@ export default {
         return json({error:'请求方法无效。'},405);
       }
       if(path==='/api/images')return request.method==='POST'?await uploadImage(request,env):json({error:'请求方法无效。'},405);
+      if(path==='/api/music')return request.method==='GET'?json(await getMusic(env)):request.method==='PUT'?await saveMusic(request,env):json({error:'请求方法无效。'},405);
+      if(path==='/api/audio')return request.method==='POST'?await uploadAudio(request,env):json({error:'请求方法无效。'},405);
+      if(path.startsWith('/audio/'))return await serveAudio(request,env,path);
       if(path.startsWith('/api/'))return json({error:'接口不存在。'},404);
       if(path.startsWith('/media/')) {
         if(!/^\/media\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(path))return new Response('Not found',{status:404});

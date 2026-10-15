@@ -9,6 +9,14 @@ const assets={fetch:async request=>new Response(new URL(request.url).pathname,{h
 const cms={fetch:async request=>new Response(JSON.stringify({id:request.headers.get('oai-authenticated-user-id'),email:request.headers.get('oai-authenticated-user-email')}))};
 const handler=createPagesHandler(cms,defaults,principal);
 await test('Pages homepage and scripts are served through the static assets binding',async()=>{for(const path of ['/','/app.js','/styles.css'])assert.equal((await handler.fetch(req(path),{ASSETS:assets})).status,200);});
+await test('Pages includes the preset BGM without a database and serves MP3 ranges through assets',async()=>{
+  const music={enabled:true,title:'Dusk',src:'/audio/dusk-peter-jeremias.mp3'};
+  const player=createPagesHandler(cms,defaults,principal,null,music);
+  assert.deepEqual((await (await player.fetch(req('/api/music'),{})).json()).music,music);
+  const response=await player.fetch(req(music.src,{headers:{Range:'bytes=0-1'}}),{ASSETS:{fetch:async request=>{assert.equal(request.headers.get('Range'),'bytes=0-1');return new Response(new Uint8Array([255,251]),{status:206,headers:{'Content-Type':'audio/mpeg','Content-Range':'bytes 0-1/100'}});}}});assert.equal(response.status,206);
+  assert.equal((await player.fetch(req(music.src),{ASSETS:assets})).status,404);
+  assert.equal((await player.fetch(req('/api/audio',{method:'POST'}),{})).status,503);
+});
 await test('Pages serves nine default chapters before storage is bound',async()=>{const response=await handler.fetch(req('/api/content'),{});assert.equal(response.status,200);assert.deepEqual((await response.json()).content,defaults);});
 await test('Pages denies admin and writes when authentication is not configured',async()=>{assert.equal((await handler.fetch(req('/admin'),{})).status,503);assert.equal((await handler.fetch(req('/api/content',{method:'PUT'}),{})).status,503);});
 await test('Pages strips spoofed former-platform identity headers',async()=>{const response=await handler.fetch(req('/api/content',{headers:{'oai-authenticated-user-id':'attacker','oai-authenticated-user-email':principal}}),{DB:{}});assert.deepEqual(await response.json(),{id:null,email:null});});

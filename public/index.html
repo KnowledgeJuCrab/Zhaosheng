@@ -15,7 +15,23 @@
   <header class="header">
     <a class="brand" href="#campus" aria-label="精神卫生学院应用心理招生，返回校园篇章"><svg aria-hidden="true" viewBox="0 0 38 38"><circle cx="19" cy="19" r="14"/><path d="M6 30 31 7"/><circle class="brand-dot" cx="30" cy="8" r="4"/></svg><span><span class="brand-name">精神卫生学院应用心理招生</span><span class="brand-en"></span></span></a>
     <div class="edition"><span class="edition-line"></span>大学生活，从这里开始</div>
-    <span class="header-label">ADMISSIONS / 2026</span>
+    <div class="header-tools">
+      <span class="header-label">ADMISSIONS / 2026</span>
+      <div class="music-player" id="music-player">
+        <div class="music-pill">
+          <button id="music-play" type="button" aria-label="播放背景音乐" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="music-play-icon" d="m7 4 9 6-9 6Z"/><path class="music-pause-icon" d="M6 4h3v12H6zm5 0h3v12h-3z"/></svg><svg class="music-symbol" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13M9 9l12-2"/><ellipse cx="6" cy="18" rx="3" ry="2"/><ellipse cx="18" cy="16" rx="3" ry="2"/></svg></button>
+          <button id="music-options" type="button" aria-label="展开音乐播放器" aria-expanded="false" aria-controls="music-panel"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>
+        </div>
+        <section class="music-panel" id="music-panel" aria-label="背景音乐播放器" hidden>
+          <div class="music-panel-heading"><span>背景音乐</span><button id="music-close" type="button" aria-label="关闭音乐播放器">×</button></div>
+          <p id="music-name">背景音乐</p>
+          <audio id="bgm-audio" controls loop preload="auto" playsinline aria-label="背景音乐播放、进度与音量"></audio>
+
+          <p class="music-note">默认音量 20%，播放完毕自动重播。</p>
+          <p id="music-status" role="status" aria-live="polite">正在启动背景音乐…</p>
+        </section>
+      </div>
+    </div>
   </header>
 
   <aside class="navigation" aria-label="探索篇章">
@@ -101,13 +117,14 @@
           <div class="image-shade"></div>
           <div class="scene-copy"><span class="scene-kicker">09 / 实践成长</span><h2 id="practice-title">在真实体验中，<br>发现新的理解。</h2><p>带着问题观察与思考，<br class="desktop-break">让每一次实践，成为成长的积累。</p></div><span class="image-index" aria-hidden="true">09</span>
         </article>
+        <button id="align-picture" class="align-picture" type="button" hidden>查看完整画面 <span aria-hidden="true">↗</span></button>
       </div>
       <div class="scene-footer"><span id="chapter-caption">一座校园，无数种可能。</span><div class="chapter-controls"><button id="previous" aria-label="上一个篇章" disabled>〈</button><span><span id="current-number">01</span><span class="total"> / 09</span></span><button id="next" aria-label="下一个篇章">〉</button></div></div>
     </div>
     <div class="scroll-landmarks" aria-hidden="true"><span id="campus"></span><span id="programs"></span><span id="learning"></span><span id="life"></span><span id="future"></span><span id="admissions"></span><span id="application"></span><span id="faculty"></span><span id="practice"></span></div>
   </main>
 
-  <footer class="footer"><span class="footer-left">探索你的可能性<span class="footer-separator">/</span><span class="footer-en">FIND YOUR POSSIBILITY</span></span><div class="scroll-hint"><span class="mouse" aria-hidden="true"><i></i></span><span id="scroll-label">向下滚动，继续探索</span></div><span class="footer-right">启程 · 校园探索</span></footer>
+  <footer class="footer"><span class="footer-left">探索你的可能性<span class="footer-separator">/</span><span class="footer-en">FIND YOUR POSSIBILITY</span></span><div class="scroll-hint"><span class="mouse" aria-hidden="true"><i></i></span><span id="scroll-label">转动转盘或点击箭头，以继续探索</span></div><span class="footer-right">启程 · 校园探索</span></footer>
   <div class="page-progress" aria-hidden="true"><i id="page-progress"></i></div>
   <span class="sr-only" id="announcement" role="status" aria-live="polite"></span>
 </body>

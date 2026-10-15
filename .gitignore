@@ -1,5 +1,6 @@
 node_modules/
 .local-data/
+.local-preview/
 .sites-runtime/
 *.tar.gz
 
