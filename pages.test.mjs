@@ -17,6 +17,26 @@ await test('Pages includes the preset BGM without a database and serves MP3 rang
   assert.equal((await player.fetch(req(music.src),{ASSETS:assets})).status,404);
   assert.equal((await player.fetch(req('/api/audio',{method:'POST'}),{})).status,503);
 });
+await test('Pages provides correct MP3 ranges when the deployed asset binding returns the complete file',async()=>{
+  const bytes=Uint8Array.from({length:100},(_,i)=>i),etag='"music-version"';
+  const env={ASSETS:{fetch:async()=>new Response(bytes,{headers:{'Content-Type':'audio/mpeg','Content-Length':'100',ETag:etag,'Last-Modified':'Wed, 14 Oct 2026 12:00:00 GMT'}})}};
+  for(const [range,start,end] of [['bytes=0-1',0,1],['bytes=70-',70,99],['bytes=-10',90,99],['bytes=90-999',90,99]]){
+    const response=await handler.fetch(req('/audio/dusk.mp3',{headers:{Range:range}}),env);
+    assert.equal(response.status,206);assert.equal(response.headers.get('Content-Range'),`bytes ${start}-${end}/100`);
+    assert.equal(response.headers.get('Content-Length'),String(end-start+1));
+    assert.deepEqual(new Uint8Array(await response.arrayBuffer()),bytes.slice(start,end+1));
+  }
+  for(const range of ['bytes=100-','bytes=90-10','bytes=-0']){
+    const response=await handler.fetch(req('/audio/dusk.mp3',{headers:{Range:range}}),env);
+    assert.equal(response.status,416);assert.equal(response.headers.get('Content-Range'),'bytes */100');assert.equal((await response.arrayBuffer()).byteLength,0);
+  }
+  for(const [validator,status] of [[etag,206],['"older-song"',200],['W/'+etag,200],['Wed, 14 Oct 2026 12:00:00 GMT',206],['Tue, 13 Oct 2026 12:00:00 GMT',200]]){
+    const response=await handler.fetch(req('/audio/dusk.mp3',{headers:{Range:'bytes=0-1','If-Range':validator}}),env);
+    assert.equal(response.status,status);
+  }
+  const complete=await handler.fetch(req('/audio/dusk.mp3'),env);
+  assert.equal(complete.status,200);assert.deepEqual(new Uint8Array(await complete.arrayBuffer()),bytes);
+});
 await test('Pages serves nine default chapters before storage is bound',async()=>{const response=await handler.fetch(req('/api/content'),{});assert.equal(response.status,200);assert.deepEqual((await response.json()).content,defaults);});
 await test('Pages denies admin and writes when authentication is not configured',async()=>{assert.equal((await handler.fetch(req('/admin'),{})).status,503);assert.equal((await handler.fetch(req('/api/content',{method:'PUT'}),{})).status,503);});
 await test('Pages strips spoofed former-platform identity headers',async()=>{const response=await handler.fetch(req('/api/content',{headers:{'oai-authenticated-user-id':'attacker','oai-authenticated-user-email':principal}}),{DB:{}});assert.deepEqual(await response.json(),{id:null,email:null});});

@@ -39,6 +39,35 @@ function setupResponse(adminPath,configured) {
     ?new Response(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>内容管理</title><body style="background:#151615;color:#eff0e7;font-family:sans-serif;padding:10vw"><h1>内容管理</h1><p>${message}</p><a style="color:#d9ef83" href="/">返回网站</a></body></html>`,{status:configured?403:503,headers:{...headers,'Content-Type':'text/html; charset=utf-8'}})
     :new Response(JSON.stringify({error:message}),{status:configured?403:503,headers:{...headers,'Content-Type':'application/json; charset=utf-8'}});
 }
+async function staticAudioRange(request,response) {
+  const range=request.headers.get('Range');
+  if(request.method!=='GET'||response.status!==200||!range)return response;
+  const match=range.match(/^bytes=(\d*)-(\d*)$/);
+  if(!match||(!match[1]&&!match[2]))return response;
+  const validator=request.headers.get('If-Range');
+  if(validator){
+    const modified=response.headers.get('Last-Modified');
+    const matches=validator.startsWith('"')
+      ?validator===response.headers.get('ETag')
+      :!validator.startsWith('W/')&&modified&&Number.isFinite(Date.parse(validator))&&Date.parse(modified)<=Date.parse(validator);
+    if(!matches)return response;
+  }
+  // Pages can return the complete asset even when a Range was forwarded.
+  // Serve the requested MP3 bytes explicitly so Safari can seek and resume.
+  const bytes=new Uint8Array(await response.arrayBuffer()),size=bytes.length;
+  let start=match[1]?Number(match[1]):Math.max(0,size-Number(match[2]));
+  let end=match[1]?(match[2]?Math.min(Number(match[2]),size-1):size-1):size-1;
+  const headers=new Headers(response.headers);
+  headers.set('Accept-Ranges','bytes');
+  headers.delete('Content-Encoding');
+  if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start>end||start>=size){
+    headers.set('Content-Range',`bytes */${size}`);headers.set('Content-Length','0');
+    return new Response(null,{status:416,headers});
+  }
+  headers.set('Content-Range',`bytes ${start}-${end}/${size}`);
+  headers.set('Content-Length',String(end-start+1));
+  return new Response(bytes.subarray(start,end+1),{status:206,headers});
+}
 export function createPagesHandler(cms,defaults,principal,publishedSnapshot=null,defaultMusic={enabled:false,title:'背景音乐',src:''}) {
   return {
     async fetch(request,env) {
@@ -67,7 +96,7 @@ export function createPagesHandler(cms,defaults,principal,publishedSnapshot=null
         const audio=await env.ASSETS.fetch(clean);
         if(audio.status===304)return audio;
         if(!audio.ok||!/^audio\/(mpeg|mp3)(;|$)/.test(audio.headers.get('Content-Type')||''))return new Response('Not found',{status:404});
-        return audio;
+        return staticAudioRange(clean,audio);
       }
       if(mediaPath) {
         if(!/^\/media\/[0-9a-f-]{36}\.(jpg|png|webp)$/.test(path)||!['GET','HEAD'].includes(request.method))return new Response('Not found',{status:404});
