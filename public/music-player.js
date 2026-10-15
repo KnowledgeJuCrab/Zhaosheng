@@ -44,6 +44,13 @@ export function initMusicPlayer() {
     playback.activate({controlsOnly:audio.contains(event.target)});
   }
   document.addEventListener('click',activateMusic,{capture:true});
+  document.addEventListener('pointerdown',event=>{
+    if(event.pointerType==='mouse')activateMusic(event);
+  },{capture:true,passive:true});
+  document.addEventListener('pointerup',event=>{
+    if(event.pointerType!=='mouse')activateMusic(event);
+  },{capture:true,passive:true});
+  document.addEventListener('touchend',activateMusic,{capture:true,passive:true});
   document.addEventListener('keydown',event=>{
     if((event.key==='Enter'||event.key===' ')&&!event.ctrlKey&&!event.metaKey&&!event.altKey)activateMusic(event);
   },{capture:true});
@@ -72,8 +79,10 @@ export function initMusicPlayer() {
     finally{loadingMusic=false;}
   }
   refreshMusic();
-  window.addEventListener('focus',()=>{refreshMusic();playback.resumeOutput();});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshMusic();playback.resumeOutput();}});
+  function restoreMusic(){refreshMusic();playback.autoplay();}
+  window.addEventListener('pageshow',restoreMusic);
+  window.addEventListener('focus',restoreMusic);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)restoreMusic();});
   if(typeof BroadcastChannel==='function'){
     const updates=new BroadcastChannel('admissions-content');
     updates.addEventListener('message',event=>{if(event.data==='music-saved')refreshMusic();});

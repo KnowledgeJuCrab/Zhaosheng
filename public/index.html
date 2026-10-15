@@ -25,10 +25,8 @@
         <section class="music-panel" id="music-panel" aria-label="背景音乐播放器" hidden>
           <div class="music-panel-heading"><span>背景音乐</span><button id="music-close" type="button" aria-label="关闭音乐播放器">×</button></div>
           <p id="music-name">背景音乐</p>
-          <audio id="bgm-audio" controls loop preload="auto" playsinline aria-label="背景音乐播放、进度与音量"></audio>
-
-          <p class="music-note">默认音量 20%，播放完毕自动重播。</p>
-          <p id="music-status" role="status" aria-live="polite">正在启动背景音乐…</p>
+          <audio id="bgm-audio" controls autoplay loop preload="auto" playsinline aria-label="背景音乐播放、进度与音量"></audio>
+          <span id="music-status" role="status" aria-live="polite"></span>
         </section>
       </div>
     </div>
