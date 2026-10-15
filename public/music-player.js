@@ -10,9 +10,10 @@ export function initMusicPlayer() {
   const close=root.querySelector('#music-close');
   const name=root.querySelector('#music-name');
   const status=root.querySelector('#music-status');
+  const opening=document.querySelector('#opening');
   let loadingMusic=false;
   root.hidden=true;
-  const playback=createMusicPlayback(audio,{onState(state){
+  const playback=createMusicPlayback(audio,{deferStart:Boolean(opening),onState(state){
     const messages={starting:'正在启动背景音乐…',playing:'正在循环播放。',blocked:'轻触页面或点击播放，即可开始聆听。',paused:'已暂停，点击播放可继续。',error:'音乐暂时无法播放，请稍后重试。'};
     if(messages[state])status.textContent=messages[state];
     updatePlayback();
@@ -40,7 +41,7 @@ export function initMusicPlayer() {
     playback.toggle();
   });
   function activateMusic(event){
-    if(!event.isTrusted||play.contains(event.target))return;
+    if(!event.isTrusted||play.contains(event.target)||(opening&&!opening.hidden))return;
     playback.activate({controlsOnly:audio.contains(event.target)});
   }
   document.addEventListener('click',activateMusic,{capture:true});
@@ -60,8 +61,9 @@ export function initMusicPlayer() {
   root.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panel.hidden){event.preventDefault();setPanel(false,true);}});
   async function refreshMusic(){
     if(loadingMusic)return;loadingMusic=true;
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),8000);
     try{
-      const response=await fetch('/api/music',{cache:'no-store',credentials:'same-origin'});
+      const response=await fetch('/api/music',{cache:'no-store',credentials:'same-origin',signal:controller.signal});
       if(!response.ok)throw new Error('Music unavailable');
       const {music}=await response.json();
       if(!music?.enabled||!music.src){
@@ -76,9 +78,9 @@ export function initMusicPlayer() {
       if(audio.getAttribute('src')!==url.href)loadTrack(url.href,title);
       else{name.textContent=title;name.title=title;}
     }catch{status.textContent='背景音乐暂时无法加载，请稍后重试。';}
-    finally{loadingMusic=false;}
+    finally{clearTimeout(timeout);loadingMusic=false;}
   }
-  refreshMusic();
+  const ready=refreshMusic();
   function restoreMusic(){refreshMusic();playback.autoplay();}
   window.addEventListener('pageshow',restoreMusic);
   window.addEventListener('focus',restoreMusic);
@@ -87,4 +89,5 @@ export function initMusicPlayer() {
     const updates=new BroadcastChannel('admissions-content');
     updates.addEventListener('message',event=>{if(event.data==='music-saved')refreshMusic();});
   }
+  return {ready,play:()=>playback.play()};
 }

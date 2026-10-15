@@ -5,16 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#151615">
   <meta name="description" content="从校园到未来，探索属于你的大学生活。">
-  <title>启程 · 探索你的大学生活</title>
+  <title>齐医 · 应用心理专业研究生招生简介</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23151615'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23d8ef79' stroke-width='2'/%3E%3Ccircle cx='24' cy='10' r='4' fill='%23d8ef79'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="opening.css">
   <script src="app.js" type="module"></script>
 </head>
-<body>
+<body class="opening-open">
+  <section class="opening" id="opening" role="dialog" aria-modal="true" aria-labelledby="opening-title" aria-describedby="opening-edition">
+    <div class="opening-header">
+      <div class="opening-brand"><svg viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="14"/><path d="M6 30 31 7"/><circle class="opening-brand-dot" cx="30" cy="8" r="4"/></svg><span>齐齐哈尔医学院<span>精神卫生学院</span></span></div>
+      <span class="opening-badge" id="opening-badge">ADMISSIONS / 2026</span>
+    </div>
+    <div class="opening-body">
+      <div class="opening-orbit" aria-hidden="true">
+        <svg viewBox="0 0 600 600" fill="none">
+          <defs><radialGradient id="opening-glow"><stop stop-color="#d9ef83" stop-opacity=".06"/><stop offset="1" stop-color="#d9ef83" stop-opacity="0"/></radialGradient></defs>
+          <circle cx="300" cy="300" r="298" fill="url(#opening-glow)"/>
+          <circle class="opening-ring faint" cx="300" cy="300" r="286"/>
+          <circle class="opening-ticks" cx="300" cy="300" r="258" pathLength="120"/>
+          <circle class="opening-ring" cx="300" cy="300" r="224"/>
+          <g class="opening-rotor"><circle class="opening-arc" cx="300" cy="300" r="224" pathLength="100"/><circle class="opening-node" cx="300" cy="76" r="4"/><circle class="opening-halo" cx="300" cy="76" r="13"/></g>
+          <circle class="opening-ring faint" cx="300" cy="300" r="172"/>
+          <g class="opening-inner-rotor"><circle class="opening-segments" cx="300" cy="300" r="142" pathLength="100"/><circle class="opening-node" cx="442" cy="300" r="2.5"/></g>
+          <path class="opening-cross" d="M300 194v13M300 393v13M194 300h13M393 300h13"/>
+          <circle class="opening-core" cx="300" cy="300" r="75"/>
+        </svg>
+        <div class="opening-readout"><span>09</span><span>CHAPTERS</span></div>
+      </div>
+      <div class="opening-copy">
+        <p class="opening-eyebrow"><span></span> QMU / APPLIED PSYCHOLOGY</p>
+        <h1 class="opening-title" id="opening-title">应用心理专业<br>研究生招生简介</h1>
+        <p class="opening-edition" id="opening-edition">研究生生活，从这里开始</p>
+        <button class="opening-enter" id="opening-enter" type="button" disabled aria-busy="true"><span>开始探索</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <div class="opening-footer"><span id="opening-footer">探索你的可能性</span><span>YOUR NEXT CHAPTER <span aria-hidden="true">↗</span></span></div>
+  </section>
+  <div id="site-content" inert>
   <a class="skip-link" href="#journey">跳到校园探索</a>
   <header class="header">
     <a class="brand" href="#campus" aria-label="精神卫生学院应用心理招生，返回校园篇章"><svg aria-hidden="true" viewBox="0 0 38 38"><circle cx="19" cy="19" r="14"/><path d="M6 30 31 7"/><circle class="brand-dot" cx="30" cy="8" r="4"/></svg><span><span class="brand-name">精神卫生学院应用心理招生</span><span class="brand-en"></span></span></a>
-    <div class="edition"><span class="edition-line"></span>大学生活，从这里开始</div>
+    <div class="edition"><span class="edition-line"></span>研究生生活，从这里开始</div>
     <div class="header-tools">
       <span class="header-label">ADMISSIONS / 2026</span>
       <div class="music-player" id="music-player">
@@ -25,7 +57,7 @@
         <section class="music-panel" id="music-panel" aria-label="背景音乐播放器" hidden>
           <div class="music-panel-heading"><span>背景音乐</span><button id="music-close" type="button" aria-label="关闭音乐播放器">×</button></div>
           <p id="music-name">背景音乐</p>
-          <audio id="bgm-audio" controls autoplay loop preload="auto" playsinline aria-label="背景音乐播放、进度与音量"></audio>
+          <audio id="bgm-audio" controls loop preload="auto" playsinline aria-label="背景音乐播放、进度与音量"></audio>
           <span id="music-status" role="status" aria-live="polite"></span>
         </section>
       </div>
@@ -125,5 +157,6 @@
   <footer class="footer"><span class="footer-left">探索你的可能性<span class="footer-separator">/</span><span class="footer-en">FIND YOUR POSSIBILITY</span></span><div class="scroll-hint"><span class="mouse" aria-hidden="true"><i></i></span><span id="scroll-label">转动转盘或点击箭头，以继续探索</span></div><span class="footer-right">启程 · 校园探索</span></footer>
   <div class="page-progress" aria-hidden="true"><i id="page-progress"></i></div>
   <span class="sr-only" id="announcement" role="status" aria-live="polite"></span>
+  </div>
 </body>
 </html>

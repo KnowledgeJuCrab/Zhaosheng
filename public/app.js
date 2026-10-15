@@ -1,7 +1,9 @@
 import {wrap,shortestDelta,scenePair,nearestChapter,picturePosition} from './journey-math.js';
 import {prepareText,positionText} from './text-layout.js';
 import {initMusicPlayer} from './music-player.js';
-initMusicPlayer();
+import {initOpening,updateOpeningContent} from './opening.js';
+const music=initMusicPlayer();
+initOpening({ready:music?.ready,onEnter:()=>music?.play()});
 const chapters = [
   { id: 'campus', name: '认识校园', category: 'THE CAMPUS', caption: '一座校园，无数种可能。' },
   { id: 'programs', name: '专业探索', category: 'YOUR PASSION', caption: '找到热爱，探索更深的世界。' },
@@ -188,6 +190,7 @@ measure();
 function applyContent(content) {
   if (!content?.settings || !Array.isArray(content.chapters) || content.chapters.length !== scenes.length) throw new Error('内容格式不正确');
   const settings = content.settings;
+  updateOpeningContent(settings);
   const brand = document.querySelector('.brand > span');
   const name = document.createElement('span');name.className='brand-name';name.textContent=settings.brand;brand.replaceChildren(name);
   const english = document.createElement('span');english.className='brand-en';english.textContent=settings.brandEnglish;brand.append(english);

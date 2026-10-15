@@ -28,6 +28,18 @@ const denied=()=>Object.assign(new Error('Autoplay denied'),{name:'NotAllowedErr
 const deferred=()=>{let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};};
 const track='https://local.example/audio/dusk.mp3';
 
+test('the opening preloads silently and its real entry gesture starts playback synchronously at 10%',async()=>{
+  const audio=new AudioFixture();const player=createMusicPlayback(audio,{deferStart:true});
+  player.setTrack(track);await settle();
+  audio.dispatchEvent(new Event('canplay'));player.autoplay();player.activate();player.resumeOutput();await settle();
+  assert.equal(audio.src,track);assert.equal(audio.playCalls,0);assert.equal(audio.autoplay,false);assert.equal(audio.paused,true);
+  // No promise/microtask is allowed between entering and the media's play() call.
+  player.play();assert.equal(audio.playCalls,1);assert.equal(audio.autoplay,true);assert.equal(audio.volume,0.1);
+  await settle();assert.equal(player.playing,true);
+  audio.finish();await settle();assert.equal(audio.playCalls,2);
+  player.toggle();player.autoplay();await settle();assert.equal(audio.paused,true);assert.equal(audio.playCalls,2);
+});
+
 test('page-load playback starts at 10%, enables native autoplay, and retains visitor volume and progress on refresh',async()=>{
   const audio=new AudioFixture(),states=[];
   const player=createMusicPlayback(audio,{onState:state=>states.push(state)});

@@ -1,9 +1,9 @@
 const DEFAULT_VOLUME=0.1;
 
-export function createMusicPlayback(audio,{onState=()=>{},AudioContextClass=globalThis.AudioContext||globalThis.webkitAudioContext}={}) {
+export function createMusicPlayback(audio,{onState=()=>{},deferStart=false,AudioContextClass=globalThis.AudioContext||globalThis.webkitAudioContext}={}) {
   let source='',version=0,attempt=0,ignoredPauses=0;
-  let wanted=true,userPaused=false,waitingForGesture=false,readinessRetried=false,context=null;
-  audio.loop=true;audio.autoplay=true;
+  let entered=!deferStart,wanted=!deferStart,userPaused=false,waitingForGesture=false,readinessRetried=false,context=null;
+  audio.loop=true;audio.autoplay=!deferStart;
   // iOS can ignore HTMLMediaElement.volume; attenuate the same MP3 with a gain node there.
   try{audio.volume=DEFAULT_VOLUME;}catch{}
   const needsGain=Math.abs(audio.volume-DEFAULT_VOLUME)>0.001;
@@ -61,6 +61,7 @@ export function createMusicPlayback(audio,{onState=()=>{},AudioContextClass=glob
     onState('paused');
   }
   function play(){
+    entered=true;
     if(!source)return;
     userPaused=false;wanted=true;
     audio.autoplay=true;
@@ -111,14 +112,15 @@ export function createMusicPlayback(audio,{onState=()=>{},AudioContextClass=glob
       if(src)audio.src=src;
       else audio.removeAttribute('src');
       audio.load();
-      wanted=Boolean(src)&&!userPaused;
+      wanted=Boolean(src)&&entered&&!userPaused;
       audio.autoplay=wanted;
       if(wanted)start();
       else onState(src?'paused':'disabled');
     },
+    play,
     toggle(){if(!audio.paused&&!waitingForGesture)pause();else play();},
     activate({controlsOnly=false}={}){
-      if(!source)return;
+      if(!source||!entered)return;
       if(controlsOnly){try{prepareOutput();resumeOutput();}catch{onState('error');}return;}
       if(waitingForGesture&&!userPaused)start();
       else if(wanted&&!audio.paused)resumeOutput();
